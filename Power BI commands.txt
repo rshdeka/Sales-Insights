@@ -1,0 +1,24 @@
+1. The company is operating only in India, so we have to filter out “Paris” and “New York” in the “sales markets” table by unchecking the “blank” field in the “zone” column.
+   The formula used -
+
+= Table.SelectRows(sales_markets, each ([zone] <> ""))
+
+
+2. In “sales transactions” table, the “sales_amount” column has -1 and 0 values, which doesn’t make any sense. 
+   The formula used to remove such values -
+
+= Table.SelectRows(sales_transactions, each ([sales_amount] <> -1 and [sales_amount] <> 0))
+
+
+3. In the “sales transactions” table, the “currency” column has USD currency values, which we will convert to INR values. 
+   So, for that I will create a new normalized column called “normalized_currency”, where all the currency values will be converted into INR currency values.
+   The formula used to create “normalized_currency” column -
+
+= Table.AddColumn(#"Filtered Rows", "normalized_currency", each if [currency] = "USD" or [currency] = "USD#(cr)" then [sales_amount]*79.35 else [sales_amount])
+
+
+4. In the “currency” column, we have 4 different values instead of 2, i.e., INR, INR\r, USD, USD\r. 
+   When we see the count of records, it is clear that INR\r and USD\r are the genuine fields with a greater number of records, and INR and USD have duplicated values.
+   So, we will simply drop the duplicated INR and USD values and keep the rest using the formula –
+
+= Table.SelectRows(#"Remove -1/0 in sales_amount", each ([currency] = "INR#(cr)" or [currency] = "USD#(cr)"))
